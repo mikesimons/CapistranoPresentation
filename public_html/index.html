@@ -39,33 +39,33 @@
 			</div>
 			<div class="slide">
 				<h2>Possible solutions</h2>
-				<ul>
-					<li class="point">Manual (TGZ to server, extract, run scripts)</li>
-					<li class="point">Scripted (Shell script)</li>
-					<li class="point">SCM triggered scripts (Shell scripts, SCM commit hook trigger)</li>
-					<li class="point">Packaged (deb, rpm etc)</li>
+				<ul class="point">
+					<li>Manual (TGZ to server, extract, run scripts)</li>
+					<li>Scripted (Shell script)</li>
+					<li>SCM triggered scripts (Shell scripts, SCM commit hook trigger)</li>
+					<li>Packaged (deb, rpm etc)</li>
 				</ul>
 			</div>
 			<div class="slide">
 				<h2>Manual</h2>
-				<ul>
-					<li class="point">Ad-hoc so chances of missing something are <em>high</em></li>
-					<li class="point">Error prone</li>
-					<li class="point">Inconsistent</li>
-					<li class="point">Hard to track actions executed therefore accountability is poor</li>
-					<li class="point">Can make it difficult to track which version of code is deployed</li>
+				<ul class="point">
+					<li>Ad-hoc so chances of missing something are <em>high</em></li>
+					<li>Error prone</li>
+					<li>Inconsistent</li>
+					<li>Hard to track actions executed therefore accountability is poor</li>
+					<li>Can make it difficult to track which version of code is deployed</li>
 				</ul>
 				<p><strong><span class="point">JUST</span> <span class="point">DON'T</span></strong></p>
 			</div>
 			<div class="slide">
 				<h2>Scripted</h2>
-				<ul>
-					<li class="point">Marginally better than manual</li>
-					<li class="point">Still error prone although less so</li>
-					<li class="point">Usually the scripts aren't battle tested so they could be buggy</li>
-					<li class="point">Can be inconsistent if scripts are rewritten for each project</li>
-					<li class="point">Especially if they're from different people</li>
-					<li class="point">However ... they can be an effective simple solution if done right</li>
+				<ul class="point">
+					<li>Marginally better than manual</li>
+					<li>Still error prone although less so</li>
+					<li>Usually the scripts aren't battle tested so they could be buggy</li>
+					<li>Can be inconsistent if scripts are rewritten for each project</li>
+					<li>Especially if they're from different people</li>
+					<li>However ... they can be an effective simple solution if done right</li>
 				</ul>
 			</div>
 			<div class="slide">
@@ -84,14 +84,22 @@
 				</ul>
 			</div>
 			<div class="slide">
-				<h2>Pre / post scripts not that hard you say?</h2>
+				<h2>Webistrano</h2>
 				<ul>
-					<li class="point">What about pre-deploy activities like updating the database?</li>
+					<li>Web interface for capistrano</li>
+					<li>Can only be effectively configured if you understand capistrano</li>
+					<li>Being an abstraction it has some limitations</li>
+				</ul>
+			</div>
+			<div class="slide">
+				<h2>Pre / post scripts aren't that hard surely?</h2>
+				<ul>
+					<li class="point">Pre-deploy activities like updating the database?</li>
 					<li class="point">And post-deploy activities?</li>
-					<li class="point">Can you reuse the above between different projects?</li>
-					<li class="point">How about if you throw another server in the mix?</li>
-					<li class="point">Or change your SCM?</li>
-					<li class="point">Or change network config to require a tunnel?</li>
+					<li class="point">Can you reuse these between different projects?</li>
+					<li class="point">Easy to add another server in the mix?</li>
+					<li class="point">Can you change your SCM?</li>
+					<li class="point">Or network config to require a tunnel?</li>
 				</ul>
 			</div>
 			<div class="slide">
@@ -126,10 +134,10 @@
 			<div class="slide">
 				<h2>Installing</h2>
 				<ul>
-					<li class="point">Distributed as a gem (a kind of ruby specific package)</li>
-					<li class="point">Available on all OS', even windows (via jruby)</li>
-					<li class="point">Install rubygems (deb based distro assumed): <pre name="code" class="bash">apt-get install rubygems</pre></li>
-					<li class="point">Install capistrano &amp; railsless-deploy: <pre name="code" class="bash">gem install capistrano railsless-deploy</pre></li>
+					<li>Distributed as a gem (a kind of ruby specific package)</li>
+					<li>Available on all OS', even windows (via jruby)</li>
+					<li>Install rubygems (deb based distro assumed): <pre name="code" class="bash">apt-get install rubygems</pre></li>
+					<li>Install gems we'll need: <pre name="code" class="bash">gem install capistrano railsless-deploy capistrano-ext</pre></li>
 				</ul>
 			</div>
 			<div class="slide">
@@ -150,129 +158,139 @@ mike@mv:~/capistrano-php$ capify .
 			<div class="slide">
 				<h2>CAPIFY (some moar)!</h2>
 				<ul>
-					<li>Open up the generated 'Capfile' and make it look like so:
+					<li>The default Capfile needs modifying thus:
 					<pre name="code" class="ruby">
 Dir['vendor/plugins/*/recipes/*.rb'].each { |plugin| load(plugin) }
 
 require 'rubygems'
 require 'railsless-deploy'
+require 'lib/deploy_tasks'
 
 load 'config/deploy' # remove this line to skip loading any of the default tasks
 					</pre>
 					</li>
 					<li>This enables you to use Capistrano sans rails</li>
+					<li>lib/deploy_tasks are our custom tasks</li>
 				</ul>
 			</div>
 			<div class="slide">
 				<h2>config/deploy.rb</h2>
 				<pre name="code" class="ruby">
-set :repository,  "git@github.com:mikesimons/CapistranoPresentation.git"
+set :stages, %w(staging production)
+require 'capistrano/ext/multistage'
+
+set :repository,  "git://github.com/mikesimons/CapistranoPresentation.git"
 
 set :scm, :git
-# Or: `accurev`, `bzr`, `cvs`, `darcs`, `git`, `mercurial`, `perforce`, `subversion` or `none`
+set :deploy_via, :remote_cache
 
-role :web, "iammike.co.uk"                          # Your HTTP server, Apache/etc
-role :app, "iammike.co.uk"                          # Your HTTP server, Apache/etc
-role :db,  "iammike.co.uk", :primary => true # This is where Rails migrations will run
-
-set :user, "iammike"
 set :use_sudo, false
-set :deploy_to, "/home/iammike/presentations/capistrano"
-set :web_root, "/home/iammike/public_html" # Custom variable
 
+## Setup tasks
 after "deploy:setup", "mynamespace:setup_public_symlink"
 after "deploy:setup", "mynamespace:setup_upload_dir"
 
+## Per deploy tasks
 before "deploy:symlink", "mynamespace:symlink_uploads"
 
-namespace :mynamespace do
-  task :setup_public_symlink, :roles => :app do
-    run "mkdir -p #{web_root}/presentations"
-    run "rm -f #{web_root}/presentations/capistrano"
-    run "ln -s #{deploy_to}/current/public_html #{web_root}/presentations/capistrano"
-  end
+## Database migration tasks
+before "deploy:symlink", "db:migration:up"
+after "deploy:rollback", "db:migration:down"
 
-  task :setup_upload_dir, :roles => :app do
-    run "mkdir -p #{shared_path}/uploads"
-  end
-
-  task :symlink_uploads, :roles => :app do
-    run "ln -s #{shared_path}/uploads #{release_path}/uploads"
-  end
-end
+## Cleanup
+after "deploy:finalize_update", "deploy:cleanup"
 				</pre>
 			</div>
 			<div class="slide">
-				<h2>Lets see it work...</h2>
+				<h2>Before we dig in ...</h2>
 				<ul>
-					<li>If you're using github, add a deploy key to your account / repo</li>
-					<li>Then run:<br />
+					<li>Here is what you might see executing a couple of tasks</li>
+					<li>First up:<br />
 						<pre name="code" class="bash">
-cap deploy:setup
-						</pre>
-						<pre name="code" class="bash">
-mike@mv:~/Src/presentations/Capistrano$ cap deploy:setup
+$ cap staging deploy:setup
+  * executing `staging'
+    triggering start callbacks for `deploy:setup'
+  * executing `multistage:ensure'
   * executing `deploy:setup'
-  * executing "mkdir -p /home/iammike/presentations/capistrano /home/iammike/presentations/capistrano/releases /home/iammike/presentations/capistrano/shared &&  chmod g+w /home/iammike/presentations/capistrano /home/iammike/presentations/capistrano/releases /home/iammike/presentations/capistrano/shared"
-    servers: ["iammike.co.uk"]
-    [iammike.co.uk] executing command
+  * executing "mkdir -p /tmp/fakestaging/capistrano /tmp/fakestaging/capistrano/releases /tmp/fakestaging/capistrano/shared &&  chmod g+w /tmp/fakestaging/capistrano /tmp/fakestaging/capistrano/releases /tmp/fakestaging/capistrano/shared"
+    servers: ["localhost"]
+    [localhost] executing command
     command finished
     triggering after callbacks for `deploy:setup'
   * executing `mynamespace:setup_public_symlink'
-  * executing "mkdir -p /home/iammike/public_html/presentations"
-    servers: ["iammike.co.uk"]
-    [iammike.co.uk] executing command
+  * executing "mkdir -p /tmp/fakestaging/webroot/presentations"
+    servers: ["localhost"]
+    [localhost] executing command
     command finished
-  * executing "rm -f /home/iammike/public_html/presentations/capistrano"
-    servers: ["iammike.co.uk"]
-    [iammike.co.uk] executing command
+  * executing "rm -f /tmp/fakestaging/webroot/presentations/capistrano"
+    servers: ["localhost"]
+    [localhost] executing command
     command finished
-  * executing "ln -s /home/iammike/presentations/capistrano/current/public_html /home/iammike/public_html/presentations/capistrano"
-    servers: ["iammike.co.uk"]
-    [iammike.co.uk] executing command
+  * executing "ln -s /tmp/fakestaging/capistrano/current/public_html /tmp/fakestaging/webroot/presentations/capistrano"
+    servers: ["localhost"]
+    [localhost] executing command
     command finished
   * executing `mynamespace:setup_upload_dir'
-  * executing "mkdir -p /home/iammike/presentations/capistrano/shared/uploads"
-    servers: ["iammike.co.uk"]
-    [iammike.co.uk] executing command
+  * executing "mkdir -p /tmp/fakestaging/capistrano/shared/uploads"
+    servers: ["localhost"]
+    [localhost] executing command
     command finished
 						</pre>
 					</li>
 				</ul>
 			</div>
 			<div class="slide">
-				<h2>Lets see it work...</h2>
+				<h2>Before we dig in...</h2>
 				<ul>
 					<li>And now:<br />
 						<pre name="code" class="bash">
-cap deploy:cold
-						</pre>
-						<pre name="code" class="bash">
-mike@mv:~/Src/presentations/Capistrano$ cap deploy:cold
+$ cap staging deploy:cold
+  * executing `staging'
+    triggering start callbacks for `deploy:cold'
+  * executing `multistage:ensure'
   * executing `deploy:cold'
   * executing `deploy:update'
  ** transaction: start
   * executing `deploy:update_code'
-    executing locally: "git ls-remote git@github.com:mikesimons/CapistranoPresentation.git HEAD"
-  * executing "git clone -q git@github.com:mikesimons/CapistranoPresentation.git /home/iammike/presentations/capistrano/releases/20110217190004 && cd /home/iammike/presentations/capistrano/releases/20110217190004 && git checkout -q -b deploy c30ea9b1825e8665864dacaf2e971cab51aa39ac && (echo c30ea9b1825e8665864dacaf2e971cab51aa39ac > /home/iammike/presentations/capistrano/releases/20110217190004/REVISION)"
-    servers: ["iammike.co.uk"]
-    [iammike.co.uk] executing command
+    updating the cached checkout on all servers
+    executing locally: "git ls-remote git://github.com/mikesimons/CapistranoPresentation.git HEAD"
+  * executing "if [ -d /tmp/fakestaging/capistrano/shared/cached-copy ]; then cd /tmp/fakestaging/capistrano/shared/cached-copy && git fetch -q origin && git reset -q --hard 6f01c927916f86389ce229c2efea530e06e987de && git clean -q -d -x -f; else git clone -q git://github.com/mikesimons/CapistranoPresentation.git /tmp/fakestaging/capistrano/shared/cached-copy && cd /tmp/fakestaging/capistrano/shared/cached-copy && git checkout -q -b deploy 6f01c927916f86389ce229c2efea530e06e987de; fi"
+    servers: ["localhost"]
+    [localhost] executing command
+    command finished
+    copying the cached version to /tmp/fakestaging/capistrano/releases/20110217210228
+  * executing "cp -RPp /tmp/fakestaging/capistrano/shared/cached-copy /tmp/fakestaging/capistrano/releases/20110217210228 && (echo 6f01c927916f86389ce229c2efea530e06e987de > /tmp/fakestaging/capistrano/releases/20110217210228/REVISION)"
+    servers: ["localhost"]
+    [localhost] executing command
     command finished
   * executing `deploy:finalize_update'
-  * executing "chmod -R g+w /home/iammike/presentations/capistrano/releases/20110217190004"
-    servers: ["iammike.co.uk"]
-    [iammike.co.uk] executing command
+  * executing "chmod -R g+w /tmp/fakestaging/capistrano/releases/20110217210228"
+    servers: ["localhost"]
+    [localhost] executing command
     command finished
+    triggering after callbacks for `deploy:finalize_update'
+  * executing `deploy:cleanup'
+  * executing "ls -xt /tmp/fakestaging/capistrano/releases"
+    servers: ["localhost"]
+    [localhost] executing command
+    command finished
+*** no old releases to clean up
   * executing `deploy:symlink'
     triggering before callbacks for `deploy:symlink'
   * executing `mynamespace:symlink_uploads'
-  * executing "ln -s /home/iammike/presentations/capistrano/shared/uploads /home/iammike/presentations/capistrano/releases/20110217190004/uploads"
-    servers: ["iammike.co.uk"]
-    [iammike.co.uk] executing command
+  * executing "ln -s /tmp/fakestaging/capistrano/shared/uploads /tmp/fakestaging/capistrano/releases/20110217210228/uploads"
+    servers: ["localhost"]
+    [localhost] executing command
     command finished
-  * executing "rm -f /home/iammike/presentations/capistrano/current && ln -s /home/iammike/presentations/capistrano/releases/20110217190004 /home/iammike/presentations/capistrano/current"
-    servers: ["iammike.co.uk"]
-    [iammike.co.uk] executing command
+  * executing `db:migration:up'
+  * executing "cd /tmp/fakestaging/capistrano/releases/20110217210228 && DEPLOY_ENV=staging rake db:migration:up"
+    servers: ["localhost"]
+    [localhost] executing command
+ ** [out :: localhost] (in /tmp/fakestaging/capistrano/releases/20110217210228)
+    command finished
+  * executing "rm -f /tmp/fakestaging/capistrano/current && ln -s /tmp/fakestaging/capistrano/releases/20110217210228 /tmp/fakestaging/capistrano/current"
+    servers: ["localhost"]
+    [localhost] executing command
     command finished
  ** transaction: commit
 						</pre>
@@ -280,7 +298,7 @@ mike@mv:~/Src/presentations/Capistrano$ cap deploy:cold
 				</ul>
 			</div>
 			<div class="slide">
-				<h2>So, erm, what just happened?</h2>
+				<h2>What did all that do?</h2>
 				<ul>
 					<li>With <strong>deploy:setup</strong> we prepared the remote server</li>
 					<li>With <strong>deploy:cold</strong> we deployed the app in to 'cold' env</li>
@@ -288,29 +306,188 @@ mike@mv:~/Src/presentations/Capistrano$ cap deploy:cold
 			</div>
 			<div class="slide">
 				<h2>Breakdown (settings)</h2>
-				@TODO
+				<pre name="code" class="ruby">
+set :stages, %w(staging production)
+require 'capistrano/ext/multistage'
+
+set :repository,  "git://github.com/mikesimons/CapistranoPresentation.git"
+
+set :scm, :git
+set :deploy_via, :remote_cache
+
+set :use_sudo, false
+				</pre>
+				<ul>
+					<li>Configures available stages</li>
+					<li>Tells cap where our repo is</li>
+					<li>Tells cap our repo is git and we want to use a remote cache</li>
+					<li>Also informs cap we don't want it to sudo commands</li>
+				</ul>
+				
 			</div>
 			<div class="slide">
 				<h2>Breakdown (hooks)</h2>
-				@TODO
+				<pre name="code" class="ruby">
+## Setup tasks
+after "deploy:setup", "mynamespace:setup_public_symlink"
+after "deploy:setup", "mynamespace:setup_upload_dir"
+
+## Per deploy tasks
+before "deploy:symlink", "mynamespace:symlink_uploads"
+
+## Database migration tasks
+before "deploy:symlink", "db:migration:up"
+after "deploy:rollback", "db:migration:down"
+
+## Cleanup
+after "deploy:finalize_update", "deploy:cleanup"
+				</pre>
+				<ul>
+					<li>Hooks allow us to customize the deployment</li>
+					<li>Any task can be hooked before or after</li>
+					<li>First param is task to be hooked</li>
+					<li>Second param is task to execute</li>
+				</ul>
 			</div>
 			<div class="slide">
-				<h2>Breakdown (tasks)</h2>
-				@TODO
+				<h2>Wait... we're missing something here</h2>
+				<pre name="code" class="ruby">
+# PRODUCTION-specific deployment configuration
+# please put general deployment config in config/deploy.rb
+#
+role :web, "iammike.co.uk"                          # Your HTTP server, Apache/etc
+role :app, "iammike.co.uk"                          # Your HTTP server, Apache/etc
+role :db,  "iammike.co.uk", :primary => true # This is where Rails migrations will run
+
+set :user, "iammike"
+set :deploy_to, "/home/iammike/presentations/capistrano"
+set :web_root, "/home/iammike/public_html" # Custom variable
+				</pre>
+				<ul>
+					<li>Multi-stage config</li>
+					<li>Stage selected when executing task; cap STAGE TASK</li>
+					<li>Any number of environments can be configured</li>
+					<li>Env specific config goes in config/deploy/STAGE.rb</li>
+				</ul>
 			</div>
 			<div class="slide">
 				<h2>Deployed application file structure</h2>
-				@TODO copypasta OF DEPLOYED APP FS<br />
 				<ul>
 					<li><strong>current</strong> is symlinked to latest release</li>
 					<li><strong>releases</strong> contains timestamped releases</li>
-					<li><strong>shared</strong> contains resources that should persist between releases (i.e. file uploads)</li>
+					<li><strong>shared</strong> resources that persist between releases (eg uploads)</li>
+				</ul>
+			</div>
+			<div class="slide">
+				<h2>Custom tasks</h2>
+				<pre name="code" class="ruby">
+Capistrano::Configuration.instance.load do
+  ## Setup tasks
+  namespace :mynamespace do
+    desc "[internal] Create symlink under doc root"
+    task :setup_public_symlink, :roles => :app do
+      run "mkdir -p #{web_root}/presentations"
+      run "rm -f #{web_root}/presentations/capistrano"
+      run "ln -s #{deploy_to}/current/public_html #{web_root}/presentations/capistrano"
+    end
+
+    desc "[internal] Create upload dir in shared folder"
+    task :setup_upload_dir, :roles => :app do
+      run "mkdir -p #{shared_path}/uploads"
+    end
+  end
+
+  ## Per deploy tasks
+  namespace :mynamespace do
+    desc "[internal] Symlink shared uploads to current release"
+    task :symlink_uploads, :roles => :app do
+      run "ln -s #{shared_path}/uploads #{release_path}/uploads"
+    end
+  end
+
+  ## DB migration tasks
+  namespace :db do
+    namespace :migration do
+      desc "Migrate database up"
+      task :up, :roles => :app do
+        run "cd #{release_path} && DEPLOY_ENV=#{stage} rake db:migration:up"
+      end
+
+      desc "Migrate database down"
+      task :down, :roles => :app do
+        run "cd #{release_path} && DEPLOY_ENV=#{stage} rake db:migration:down"
+      end
+    end
+  end
+end
+				</pre>
+			</div>
+			<div class="slide">
+				<h2>Custom setup tasks</h2>
+				<pre name="code" class="ruby">
+    desc "[internal] Create symlink under doc root"
+    task :setup_public_symlink, :roles => :app do
+      run "mkdir -p #{web_root}/presentations"
+      run "rm -f #{web_root}/presentations/capistrano"
+      run "ln -s #{deploy_to}/current/public_html #{web_root}/presentations/capistrano"
+    end
+
+    desc "[internal] Create upload dir in shared folder"
+    task :setup_upload_dir, :roles => :app do
+      run "mkdir -p #{shared_path}/uploads"
+    end
+				</pre>
+				<ul>
+					<li>First task symlinks latest release above doc root</li>
+					<li>Second ensures that a shared uploads directory exists</li>
+					<li>Other things we might do...
+						<ul>
+							<li>Fetching resources</li>
+							<li>Configuring services</li>
+							<li>Setting permissions</li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+			<div class="slide">
+				<h2>Custom per deploy tasks</h2>
+				<pre name="code" class="ruby">
+    desc "[internal] Symlink shared uploads to current release"
+    task :symlink_uploads, :roles => :app do
+      run "ln -s #{shared_path}/uploads #{release_path}/uploads"
+    end
+				</pre>
+				<ul>
+					<li>Simply ensures that current release has shared upload dir available</li>
+				</ul>
+			</div>
+			<div class="slide">
+				<h2>DB migrations</h2>
+				<pre name="code" class="ruby">
+      desc "Migrate database up"
+      task :up, :roles => :app do
+        run "cd #{release_path} && DEPLOY_ENV=#{stage} rake db:migration:up"
+      end
+
+      desc "Migrate database down"
+      task :down, :roles => :app do
+        run "cd #{release_path} && DEPLOY_ENV=#{stage} rake db:migration:down"
+      end
+				</pre>
+				<ul>
+					<li>Uses ActiveRecord via a Rakefile</li>
+					<li>Allows up and down migrations</li>
+					<li>Loads env specific db config</li>
+					<li>Can be triggered independently with cap db:migration:XXX</li>
+					<li>Using rake task a specific version can be targetted</li>
 				</ul>
 			</div>
 			<div class="slide">
 				<h2>Other cap tasks with cap -T</h2>
 				<pre name="code" class="bash">
-mike@mv:~/Src/presentations/Capistrano$ cap -T
+$ cap -T
+cap db:migration:down    # Migrate database down
+cap db:migration:up      # Migrate database up
 cap deploy               # Deploys your project.
 cap deploy:check         # Test deployment dependencies.
 cap deploy:cleanup       # Clean up old releases.
@@ -325,7 +502,10 @@ cap deploy:update        # Copies your project and updates the symlink.
 cap deploy:update_code   # Copies your project to the remote servers.
 cap deploy:upload        # Copy files to the currently deployed version.
 cap invoke               # Invoke a single command on the remote servers.
+cap multistage:prepare   # Stub out the staging config files.
+cap production           # Set the target stage to `production'.
 cap shell                # Begin an interactive Capistrano session.
+cap staging              # Set the target stage to `staging'.
 
 Some tasks were not listed, either because they have no description,
 or because they are only used internally by other tasks. To see all
@@ -336,39 +516,27 @@ Type `cap -e taskname' to view it.
 				</pre>
 			</div>
 			<div class="slide">
-				@TODO Provide example of database migration
-			</div>
-			<div class="slide">
-				<h2>Pitfalls with rollback</h2>
+				<h2>Pitfalls with deploy:rollback</h2>
 				<ul>
-					<li>Database migrations must go down as well as up (not always feasible)</li>
+					<li>If your migration can't go backwards then error on rollback</li>
 					<li>Potential data loss</li>
-					<li>Resources processed as part of deployment will need re-processing</li>
+					<li>Resources will need re-re-processing</li>
 					<li>... given this, <strong>NEVER</strong> modify the originals</li>
-				</ul>
-			</div>
-			<div class="slide">
-				<h2>Multi-stage deploy</h2>
-				<ul>
-					<li>Install the capistrano-ext gem<br />
-					<pre name="code" class="bash">gem install capistrano-ext</pre>
-					</li>
-					<li>And add the following to the top of config/deploy.rb:<br />
-					<pre name="code" class="ruby">
-set :stages, %w(staging production testing)
-require 'capistrano/ext/multistage'
-					</pre></li>
-					<li>Override specific config in config/deploy/&lt;stage&gt;.rb</li>
-					<li>Now setup server with `cap &lt;stage&gt; deploy:setup`</li>
-					<li>And deploy with `cap &lt;stage&gt; deploy`</li>
 				</ul>
 			</div>
 			<div class="slide">
 				<h2>Multi-server deploy</h2>
 				<ul>
 					<li>Role based</li>
-					<li>Specify multiple servers for a given role</li>
-					<li></li>
+					<li>Specify multiple servers for a given role<br />
+						<pre name="code" class="ruby">
+role :web, "web1.iammike.co.uk"
+role :web, "web2.iammike.co.uk"	</pre>
+					</li>
+					<li>Any tasks that apply to :web role will be executed on both</li>
+			</div>
+			<div class="slide">
+				<h2>Questions?</h2>
 			</div>
 		</div>
 		<!--

@@ -18,3 +18,6 @@ before "deploy:symlink", "mynamespace:symlink_uploads"
 ## Database migration tasks
 before "deploy:symlink", "db:migration:up"
 after "deploy:rollback", "db:migration:down"
+
+## Cleanup
+after "deploy:finalize_update", "deploy:cleanup"
