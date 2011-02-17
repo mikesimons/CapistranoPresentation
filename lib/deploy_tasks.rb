@@ -28,12 +28,12 @@ Capistrano::Configuration.instance.load do
     namespace :migration do
       desc "Migrate database up"
       task :up, :roles => :app do
-        run "cd #{release_path} && DEPLOY_ENV=#{stage} rake db:migrations:up"
+        run "cd #{release_path} && DEPLOY_ENV=#{stage} rake db:migration:up"
       end
 
       desc "Migrate database down"
       task :down, :roles => :app do
-        run "cd #{release_path} && DEPLOY_ENV=#{stage} rake db:migrations:down"
+        run "cd #{release_path} && DEPLOY_ENV=#{stage} rake db:migration:down"
       end
     end
   end
