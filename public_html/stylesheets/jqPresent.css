@@ -38,6 +38,7 @@ a:link, a:hover, a:visited {
 }
 
 #slides {
+  overflow: hidden;
   position: absolute;
   left: 3em;
   right: 1em;

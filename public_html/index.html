@@ -160,30 +160,36 @@ require 'railsless-deploy'
 load 'config/deploy' # remove this line to skip loading any of the default tasks
 					</pre>
 					</li>
+					<li>This enables you to use Capistrano sans rails</li>
 				</ul>
 			</div>
 			<div class="slide">
 				<h2>config/deploy.rb</h2>
 				<pre name="code" class="ruby">
-set :repository,  "git@github.com:mikesimons/jqPresent.git"
+set :repository,  "git@github.com:mikesimons/CapistranoPresentation.git"
 
 set :scm, :git
 # Or: `accurev`, `bzr`, `cvs`, `darcs`, `git`, `mercurial`, `perforce`, `subversion` or `none`
 
 role :web, "iammike.co.uk"                          # Your HTTP server, Apache/etc
+role :app, "iammike.co.uk"                          # Your HTTP server, Apache/etc
 role :db,  "iammike.co.uk", :primary => true # This is where Rails migrations will run
 
 set :user, "iammike"
 set :use_sudo, false
-set :deploy_to, "/home/iammike/presentations/jqpresent"
+set :deploy_to, "/home/iammike/presentations/capistrano"
 set :web_root, "/home/iammike/public_html" # Custom variable
 
 after "deploy:setup", "mynamespace:setup_public_symlink"
+after "deploy:setup", "mynamespace:setup_upload_dir"
 
-namespace :mynamespace
+before "deploy:symlink", "mynamespace:symlink_uploads"
+
+namespace :mynamespace do
   task :setup_public_symlink, :roles => :app do
     run "mkdir -p #{web_root}/presentations"
-    run "ln -s #{deploy_to}/current/public_html #{web_root}/presentations/capistrano-php"
+    run "rm -f #{web_root}/presentations/capistrano"
+    run "ln -s #{deploy_to}/current/public_html #{web_root}/presentations/capistrano"
   end
 
   task :setup_upload_dir, :roles => :app do
@@ -193,21 +199,83 @@ namespace :mynamespace
   task :symlink_uploads, :roles => :app do
     run "ln -s #{shared_path}/uploads #{release_path}/uploads"
   end
-
 end
 				</pre>
 			</div>
 			<div class="slide">
 				<h2>Lets see it work...</h2>
 				<ul>
-					<li>If you're using github, add a deploy key to your account / repo<br />
-					<pre name="code" class="bash">
+					<li>If you're using github, add a deploy key to your account / repo</li>
+					<li>Then run:<br />
+						<pre name="code" class="bash">
 cap deploy:setup
-cap deploy:cold</pre>
+						</pre>
+						<pre name="code" class="bash">
+mike@mv:~/Src/presentations/Capistrano$ cap deploy:setup
+  * executing `deploy:setup'
+  * executing "mkdir -p /home/iammike/presentations/capistrano /home/iammike/presentations/capistrano/releases /home/iammike/presentations/capistrano/shared &&  chmod g+w /home/iammike/presentations/capistrano /home/iammike/presentations/capistrano/releases /home/iammike/presentations/capistrano/shared"
+    servers: ["iammike.co.uk"]
+    [iammike.co.uk] executing command
+    command finished
+    triggering after callbacks for `deploy:setup'
+  * executing `mynamespace:setup_public_symlink'
+  * executing "mkdir -p /home/iammike/public_html/presentations"
+    servers: ["iammike.co.uk"]
+    [iammike.co.uk] executing command
+    command finished
+  * executing "rm -f /home/iammike/public_html/presentations/capistrano"
+    servers: ["iammike.co.uk"]
+    [iammike.co.uk] executing command
+    command finished
+  * executing "ln -s /home/iammike/presentations/capistrano/current/public_html /home/iammike/public_html/presentations/capistrano"
+    servers: ["iammike.co.uk"]
+    [iammike.co.uk] executing command
+    command finished
+  * executing `mynamespace:setup_upload_dir'
+  * executing "mkdir -p /home/iammike/presentations/capistrano/shared/uploads"
+    servers: ["iammike.co.uk"]
+    [iammike.co.uk] executing command
+    command finished
+						</pre>
 					</li>
-					<li>
-					<pre name="code" class="bash">
-					</pre>
+				</ul>
+			</div>
+			<div class="slide">
+				<h2>Lets see it work...</h2>
+				<ul>
+					<li>And now:<br />
+						<pre name="code" class="bash">
+cap deploy:cold
+						</pre>
+						<pre name="code" class="bash">
+mike@mv:~/Src/presentations/Capistrano$ cap deploy:cold
+  * executing `deploy:cold'
+  * executing `deploy:update'
+ ** transaction: start
+  * executing `deploy:update_code'
+    executing locally: "git ls-remote git@github.com:mikesimons/CapistranoPresentation.git HEAD"
+  * executing "git clone -q git@github.com:mikesimons/CapistranoPresentation.git /home/iammike/presentations/capistrano/releases/20110217190004 && cd /home/iammike/presentations/capistrano/releases/20110217190004 && git checkout -q -b deploy c30ea9b1825e8665864dacaf2e971cab51aa39ac && (echo c30ea9b1825e8665864dacaf2e971cab51aa39ac > /home/iammike/presentations/capistrano/releases/20110217190004/REVISION)"
+    servers: ["iammike.co.uk"]
+    [iammike.co.uk] executing command
+    command finished
+  * executing `deploy:finalize_update'
+  * executing "chmod -R g+w /home/iammike/presentations/capistrano/releases/20110217190004"
+    servers: ["iammike.co.uk"]
+    [iammike.co.uk] executing command
+    command finished
+  * executing `deploy:symlink'
+    triggering before callbacks for `deploy:symlink'
+  * executing `mynamespace:symlink_uploads'
+  * executing "ln -s /home/iammike/presentations/capistrano/shared/uploads /home/iammike/presentations/capistrano/releases/20110217190004/uploads"
+    servers: ["iammike.co.uk"]
+    [iammike.co.uk] executing command
+    command finished
+  * executing "rm -f /home/iammike/presentations/capistrano/current && ln -s /home/iammike/presentations/capistrano/releases/20110217190004 /home/iammike/presentations/capistrano/current"
+    servers: ["iammike.co.uk"]
+    [iammike.co.uk] executing command
+    command finished
+ ** transaction: commit
+						</pre>
 					</li>
 				</ul>
 			</div>
@@ -215,8 +283,7 @@ cap deploy:cold</pre>
 				<h2>So, erm, what just happened?</h2>
 				<ul>
 					<li>With <strong>deploy:setup</strong> we prepared the remote server</li>
-					<li>With <strong>deploy:cold</strong> we deployed the app</li>
-					<li><strong>deploy:cold</strong> is the same as <strong>deploy</strong> but may do some additional one off stuff</li>
+					<li>With <strong>deploy:cold</strong> we deployed the app in to 'cold' env</li>
 				</ul>
 			</div>
 			<div class="slide">

@@ -1,0 +1,4 @@
+adapter: mysql
+database: cap_test
+username: cap_test
+password: cap_test
