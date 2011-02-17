@@ -43,10 +43,10 @@ after "deploy:rollback", "db:migrate:down"
 namespace :db do
   namespace :migrate do
     task :up, :roles => :app do
-      run "DEPLOY_ENV=#{stage} cd #{release_path} && rake db:migrate:up"
+      run "cd #{release_path} && DEPLOY_ENV=#{stage} rake db:migrate:up"
     end
     task :down, :roles => :app do
-      run "DEPLOY_ENV=#{stage} cd #{release_path} && rake db:migrate:down"
+      run "cd #{release_path} && DEPLOY_ENV=#{stage} rake db:migrate:down"
     end
   end
 end
