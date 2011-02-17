@@ -1,0 +1,305 @@
+<!doctype HTML>
+<html>
+	<head>
+		<title>jqPresent demo</title>
+		<link rel="stylesheet" type="text/css" href="stylesheets/jqPresent.css" />
+		<link rel="stylesheet" type="text/css" href="stylesheets/SyntaxHighlighter.css"></link>
+		<script src="scripts/jquery-1.5.min.js"></script>
+		<script src="scripts/jquery-ui-1.8.9.custom.min.js"></script>
+		<script src="scripts/jquery.hotkeys.js"></script>
+		<script src="scripts/jqPresent.js"></script>
+		<script src="scripts/syntaxhighlighter/shCore.js"></script>
+		<script src="scripts/syntaxhighlighter/shBrushRuby.js"></script>
+		<script src="scripts/syntaxhighlighter/shBrushBash.js"></script>
+		<script src="scripts/init.js"></script>
+	</head>
+	<body>
+		<!--<div id="header">
+			<h1>Deployment, Capistrano &amp; PHP</h1>
+			<div id="relnav">
+				<a href="#prev" id="prev">Previous</a>
+				<a href="#next" id="next">Next</a>
+			</div>
+		</div>-->
+		<div id="slides">
+			<div class="slide">
+				<h2>Deployment, Capistrano &amp; PHP</h2>
+				<ul>
+					<li>Mike Simons</li>
+					<li><a href="mailto:msimons@ibuildings.com">msimons@ibuildings.com</a></li>
+					<li>Twitter: @ixulai</li>
+				</ul>
+			</div>
+			<div class="slide">
+				<h2>First up, the problem...</h2>
+				<ul>
+					<li>How can we deploy apps consistently and reliably?</li>
+					<li>What sort of considerations do we need to take in to account?</li>
+				</ul>
+			</div>
+			<div class="slide">
+				<h2>Possible solutions</h2>
+				<ul>
+					<li class="point">Manual (TGZ to server, extract, run scripts)</li>
+					<li class="point">Scripted (Shell script)</li>
+					<li class="point">SCM triggered scripts (Shell scripts, SCM commit hook trigger)</li>
+					<li class="point">Packaged (deb, rpm etc)</li>
+				</ul>
+			</div>
+			<div class="slide">
+				<h2>Manual</h2>
+				<ul>
+					<li class="point">Ad-hoc so chances of missing something are <em>high</em></li>
+					<li class="point">Error prone</li>
+					<li class="point">Inconsistent</li>
+					<li class="point">Hard to track actions executed therefore accountability is poor</li>
+					<li class="point">Can make it difficult to track which version of code is deployed</li>
+				</ul>
+				<p><strong><span class="point">JUST</span> <span class="point">DON'T</span></strong></p>
+			</div>
+			<div class="slide">
+				<h2>Scripted</h2>
+				<ul>
+					<li class="point">Marginally better than manual</li>
+					<li class="point">Still error prone although less so</li>
+					<li class="point">Usually the scripts aren't battle tested so they could be buggy</li>
+					<li class="point">Can be inconsistent if scripts are rewritten for each project</li>
+					<li class="point">Especially if they're from different people</li>
+					<li class="point">However ... they can be an effective simple solution if done right</li>
+				</ul>
+			</div>
+			<div class="slide">
+				<h2>SCM triggered scripts</h2>
+				<ul>
+					<li>Pretty much the same as scripted except cooler</li>
+					<li>Chance of accidental deploy unless access controls are in place</li>
+				</ul>
+			</div>
+			<div class="slide">
+				<h2>Packaged</h2>
+				<ul>
+					<li>The best so far but package will be OS sensitive</li>
+					<li>Post deploy scripts are still just scripts</li>
+					<li>Hence suffer the same as scripted deploys</li>
+				</ul>
+			</div>
+			<div class="slide">
+				<h2>Pre / post scripts not that hard you say?</h2>
+				<ul>
+					<li class="point">What about pre-deploy activities like updating the database?</li>
+					<li class="point">And post-deploy activities?</li>
+					<li class="point">Can you reuse the above between different projects?</li>
+					<li class="point">How about if you throw another server in the mix?</li>
+					<li class="point">Or change your SCM?</li>
+					<li class="point">Or change network config to require a tunnel?</li>
+				</ul>
+			</div>
+			<div class="slide">
+				<h2>Enter Capistrano!</h2>
+				<img src="images/superman.gif" width="75%" height="75%">
+			</div>
+			<div class="slide">
+				<h2>What is Capistrano?</h2>
+				<ul>
+					<li>Deployment framework</li>
+					<li>Written in ruby</li>
+					<li>Originally written to deploy rails apps</li>
+				</ul>
+			</div>
+			<div class="slide">
+				<h2>Ruby? <span class="point">RAILS?</span> <span class="point wrongroom">WRONG ROOM SUNSHINE!</span></h2>
+				<img src="images/angry-mob.jpg" class="point wrongroom" width="40%" height="40%">
+				<p class="point wrongroom">... but with a handy recipe called 'railsless-deploy' Capistrano can be used for PHP apps too (or any other language for that matter)!</p>
+			</div>
+			<div class="slide">
+				<h2>What can Capistrano do?</h2>
+				<ul>
+					<li class="point">SCM integration</li>
+					<li class="point">Release based deploy with rollback facility</li>
+					<li class="point">Privilege escalation handling</li>
+					<li class="point">Various deploy methods including leveraging git delta packing</li>
+					<li class="point">SSH tunnel support</li>
+					<li class="point">Custom pre / post tasks</li>
+					<li class="point">Multi-stage &amp; multi-server deploy</li>
+					<li class="point">Many shared recipes (plugins) already written</li>
+			</div>
+			<div class="slide">
+				<h2>Installing</h2>
+				<ul>
+					<li class="point">Distributed as a gem (a kind of ruby specific package)</li>
+					<li class="point">Available on all OS', even windows (via jruby)</li>
+					<li class="point">Install rubygems (deb based distro assumed): <pre name="code" class="bash">apt-get install rubygems</pre></li>
+					<li class="point">Install capistrano &amp; railsless-deploy: <pre name="code" class="bash">gem install capistrano railsless-deploy</pre></li>
+				</ul>
+			</div>
+			<div class="slide">
+				<h2>CAPIFY!</h2>
+				<ul>
+					<li>Setup your project by executing: <pre name="code" class="bash">capify .</pre></li>
+					<li>This generates a 'Capfile' &amp; a 'config' folder<br />
+					<pre name="code" class="bash">
+mike@mv:~/capistrano-php$ capify .
+[add] writing './Capfile'
+[add] making directory './config'
+[add] writing './config/deploy.rb'
+[done] capified!
+					</pre>
+					</li>
+				</ul>
+			</div>
+			<div class="slide">
+				<h2>CAPIFY (some moar)!</h2>
+				<ul>
+					<li>Open up the generated 'Capfile' and make it look like so:
+					<pre name="code" class="ruby">
+Dir['vendor/plugins/*/recipes/*.rb'].each { |plugin| load(plugin) }
+
+require 'rubygems'
+require 'railsless-deploy'
+
+load 'config/deploy' # remove this line to skip loading any of the default tasks
+					</pre>
+					</li>
+				</ul>
+			</div>
+			<div class="slide">
+				<h2>config/deploy.rb</h2>
+				<pre name="code" class="ruby">
+set :repository,  "git@github.com:mikesimons/jqPresent.git"
+
+set :scm, :git
+# Or: `accurev`, `bzr`, `cvs`, `darcs`, `git`, `mercurial`, `perforce`, `subversion` or `none`
+
+role :web, "iammike.co.uk"                          # Your HTTP server, Apache/etc
+role :db,  "iammike.co.uk", :primary => true # This is where Rails migrations will run
+
+set :user, "iammike"
+set :use_sudo, false
+set :deploy_to, "/home/iammike/presentations/jqpresent"
+set :web_root, "/home/iammike/public_html" # Custom variable
+
+after "deploy:setup", "mynamespace:setup_public_symlink"
+
+namespace :mynamespace
+  task :setup_public_symlink, :roles => :app do
+    run "mkdir -p #{web_root}/presentations"
+    run "ln -s #{deploy_to}/current/public_html #{web_root}/presentations/capistrano-php"
+  end
+
+  task :setup_upload_dir, :roles => :app do
+    run "mkdir -p #{shared_path}/uploads"
+  end
+
+  task :symlink_uploads, :roles => :app do
+    run "ln -s #{shared_path}/uploads #{release_path}/uploads"
+  end
+
+end
+				</pre>
+			</div>
+			<div class="slide">
+				<h2>Lets see it work...</h2>
+				<ul>
+					<li>If you're using github, add a deploy key to your account / repo<br />
+					<pre name="code" class="bash">
+cap deploy:setup
+cap deploy:cold</pre>
+					</li>
+					<li>
+					<pre name="code" class="bash">
+					</pre>
+					</li>
+				</ul>
+			</div>
+			<div class="slide">
+				<h2>So, erm, what just happened?</h2>
+				<ul>
+					<li>With <strong>deploy:setup</strong> we prepared the remote server</li>
+					<li>With <strong>deploy:cold</strong> we deployed the app</li>
+					<li><strong>deploy:cold</strong> is the same as <strong>deploy</strong> but may do some additional one off stuff</li>
+				</ul>
+			</div>
+			<div class="slide">
+				<h2>Breakdown (settings)</h2>
+				@TODO
+			</div>
+			<div class="slide">
+				<h2>Breakdown (hooks)</h2>
+				@TODO
+			</div>
+			<div class="slide">
+				<h2>Breakdown (tasks)</h2>
+				@TODO
+			</div>
+			<div class="slide">
+				<h2>Deployed application file structure</h2>
+				@TODO copypasta OF DEPLOYED APP FS<br />
+				<ul>
+					<li><strong>current</strong> is symlinked to latest release</li>
+					<li><strong>releases</strong> contains timestamped releases</li>
+					<li><strong>shared</strong> contains resources that should persist between releases (i.e. file uploads)</li>
+				</ul>
+			</div>
+			<div class="slide">
+				<h2>Other cap tasks with cap -T</h2>
+				<pre name="code" class="bash">
+mike@mv:~/Src/presentations/Capistrano$ cap -T
+cap deploy               # Deploys your project.
+cap deploy:check         # Test deployment dependencies.
+cap deploy:cleanup       # Clean up old releases.
+cap deploy:cold          # Deploys and starts a `cold' application.
+cap deploy:pending       # Displays the commits since your last deploy.
+cap deploy:pending:diff  # Displays the `diff' since your last deploy.
+cap deploy:rollback      # Rolls back to a previous version and restarts.
+cap deploy:rollback:code # Rolls back to the previously deployed version.
+cap deploy:setup         # Prepares one or more servers for deployment.
+cap deploy:symlink       # Updates the symlink to the most recently deployed ...
+cap deploy:update        # Copies your project and updates the symlink.
+cap deploy:update_code   # Copies your project to the remote servers.
+cap deploy:upload        # Copy files to the currently deployed version.
+cap invoke               # Invoke a single command on the remote servers.
+cap shell                # Begin an interactive Capistrano session.
+
+Some tasks were not listed, either because they have no description,
+or because they are only used internally by other tasks. To see all
+tasks, type `cap -vT'.
+
+Extended help may be available for these tasks.
+Type `cap -e taskname' to view it.
+				</pre>
+			</div>
+			<div class="slide">
+				@TODO Provide example of database migration
+			</div>
+			<div class="slide">
+				<h2>Pitfalls with rollback</h2>
+				<ul>
+					<li>Database migrations must go down as well as up (not always feasible)</li>
+					<li>Potential data loss</li>
+					<li>Resources processed as part of deployment will need re-processing</li>
+					<li>... given this, <strong>NEVER</strong> modify the originals</li>
+				</ul>
+			</div>
+			<div class="slide">
+				<h2>Multi-stage deploy</h2>
+				<pre name="code" class="bash">gem install capistrano-multistage</pre>
+				<ul>
+					<li>Move platform dependent config to config/deploy/&lt;stage&gt;.rb</li>
+					<li>Now it's `cap &lt;stage&gt; deploy`</li>
+				</ul>
+			</div>
+			<div class="slide">
+				<h2>Multi-server deploy</h2>
+				<ul>
+					<li>Role based</li>
+					<li>Specify multiple servers for a given role</li>
+					<li></li>
+			</div>
+		</div>
+		<!--
+		<div id="footer">
+			<ol id="pager"></ol>
+			<p id="author">Mike Simons - <a href="mailto:mike@iammike.co.uk">mike@iammike.co.uk</a></p>
+		</div>-->
+	</body>
+</html>
