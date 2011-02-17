@@ -1,4 +1,5 @@
 require 'active_record'
+require 'logger'
 require 'yaml'
 
 namespace :db do
@@ -15,7 +16,9 @@ namespace :db do
   end
 
   task :environment do
-    ActiveRecord::Base.establish_connection(YAML::load(File.open('config/database.yml')))
+    deploy_env = ENV["DEPLOY_ENV"] || 'production'
+    config = YAML::load(File.open('config/database.yml'))
+    ActiveRecord::Base.establish_connection(config[deploy_env])
     ActiveRecord::Base.logger = Logger.new(File.open('/dev/null', 'w'))
   end
 end

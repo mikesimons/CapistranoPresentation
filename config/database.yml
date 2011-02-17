@@ -1,4 +1,11 @@
-adapter: mysql
-database: cap_test
-username: cap_test
-password: cap_test
+staging:
+  adapter: mysql
+  database: cap_test
+  username: cap_test
+  password: cap_test
+
+production:
+  adapter: mysql
+  database: cap_test
+  username: cap_test
+  password: a_more_secure_password

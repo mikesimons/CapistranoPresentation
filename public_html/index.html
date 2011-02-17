@@ -349,10 +349,18 @@ Type `cap -e taskname' to view it.
 			</div>
 			<div class="slide">
 				<h2>Multi-stage deploy</h2>
-				<pre name="code" class="bash">gem install capistrano-multistage</pre>
 				<ul>
-					<li>Move platform dependent config to config/deploy/&lt;stage&gt;.rb</li>
-					<li>Now it's `cap &lt;stage&gt; deploy`</li>
+					<li>Install the capistrano-ext gem<br />
+					<pre name="code" class="bash">gem install capistrano-ext</pre>
+					</li>
+					<li>And add the following to the top of config/deploy.rb:<br />
+					<pre name="code" class="ruby">
+set :stages, %w(staging production testing)
+require 'capistrano/ext/multistage'
+					</pre></li>
+					<li>Override specific config in config/deploy/&lt;stage&gt;.rb</li>
+					<li>Now setup server with `cap &lt;stage&gt; deploy:setup`</li>
+					<li>And deploy with `cap &lt;stage&gt; deploy`</li>
 				</ul>
 			</div>
 			<div class="slide">
