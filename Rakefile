@@ -3,13 +3,13 @@ require 'logger'
 require 'yaml'
 
 namespace :db do
-  namespace :migrate do
-    desc "Migrate the database through scripts in db/migrate. Target specific version with VERSION=x"
+  namespace :migrations do
+    desc "Migrate the database through scripts in db/migrations. Target specific version with VERSION=x"
     task :up => :environment do
       ActiveRecord::Migrator.up('db/migrate', ENV["VERSION"] ? ENV["VERSION"].to_i : nil )
     end
 
-    desc "Migrate the database through scripts in db/migrate. Target specific version with VERSION=x"
+    desc "Migrate the database through scripts in db/migrations. Target specific version with VERSION=x"
     task :down => :environment do
       ActiveRecord::Migrator.down('db/migrate', ENV["VERSION"] ? ENV["VERSION"].to_i : nil )
     end
