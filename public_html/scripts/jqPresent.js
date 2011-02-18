@@ -281,94 +281,6 @@ $.fn.present = function(options) {
     };
   })();
 
-  scale = (function() {
-    var oProp = null;
-    var oCDim = null;
-
-    var containerDimensions = function() {
-      if(!oCDim) {
-        oCDim = {
-          w: container.width() / $(window).width(),
-          h: container.height() /$(window).height()
-        }
-      }
-
-      return {
-        w: $(window).width() * oCDim.w,
-        h: $(window).height() * oCDim.h
-      };
-    };
-
-    var maxSlideDimensions = function() {
-      var maxW = maxH = 0;
-      state.slides.each(function(k,s) {
-        s = $(s);
-        var isCurrent = s.is(':visible');
-        var style = null;
-
-        if(!isCurrent) {
-          style = s.attr('style');
-          s.css({ visibility: 'hidden', position: 'absolute'}).show();
-        }
-
-        maxW = maxW < s.width() ? s.width() : maxW;
-        maxH = maxH < s.height() ? s.height() : maxH;
-
-        if(!isCurrent) {
-          s.hide().attr('style', style);
-        }
-      });
-
-      return { w: maxW, h: maxH };
-    };
-
-    var separateUnits = function(x) {
-      var m = x.match(/([0-9]+)(.*)/);
-      if(!m) m = { value: null, units: 'px' };
-      return {
-        value: m[1],
-        units: m[2]
-      };
-    };
-
-    var auto = function() {
-      var c = containerDimensions();
-      var m = maxSlideDimensions();
-
-      var rW = c.w / m.w;
-      var rH = c.h / m.h;
-      var rM = rW > rH ? rH : rW;
-
-      var fields = ['font-size'];
-      var fieldsH = ['margin-top', 'margin-bottom', 'padding-top', 'padding-bottom', 'height', 'top', 'bottom'];
-      var fieldsW = ['margin-left', 'margin-right', 'padding-left', 'padding-right', 'width', 'left', 'right'];
-
-      var apply = function(elem, fields, r) {
-        $.each(fields, function(k,f) {
-          elem.each(function(k,e) { 
-            e = $(e);
-            var val = separateUnits(e.css(f));
-            if((f == 'width' || f == 'height') && val.value == 0) {
-              val = separateUnits(e[0][f] + 'px');
-              console.log(f);
-            }
-            e.css(f, (val.value * r) + val.units);
-          });
-        });
-      };
-
-      apply(container, fields, rM);
-
-      apply(container, fieldsH, rH);
-      apply(container, fieldsW, rW);
-
-      apply(container.find('img'), fieldsH, rM);
-      apply(container.find('img'), fieldsW, rM);
-    };
-
-    return { auto: auto };
-  })();
-
   // Plugin initialisation
   // Merge options wit defaults
   options = $.extend(defaults, options);
@@ -408,12 +320,6 @@ $.fn.present = function(options) {
     if(util.hash() != t) slides.change(t);
     return false;
   });
-
-  // Auto scale slide content to available screen area
-  // (currently only deals with slides, not any surrounding chrome like header / footer)
-  //$(document).ready(scale.auto);
-  points.hide();
-  //$(window).resize(scale.auto); // FIXME
 
   return this;
 }
